@@ -1,0 +1,374 @@
+{ parameter
+    (or (pair %assertTransfer (address %from) (address %to_))
+        (or %otherParameter
+           (or (or (pair %addUser (address %new_user) (option %new_user_whitelist nat))
+                   (pair %getAdmin (unit %0) (contract %1 address)))
+               (or (pair %getIssuer (unit %0) (contract %1 address))
+                   (pair %getUser (address %0) (contract %1 (option nat)))))
+           (or (or (pair %getWhitelist
+                      (nat %0)
+                      (contract %1 (option (pair (set %allowed_whitelists nat) (bool %unrestricted)))))
+                   (address %setAdmin))
+               (or (address %setIssuer)
+                   (pair %setWhitelistOutbound
+                      (option %new_outbound_whitelists
+                         (pair (set %allowed_whitelists nat) (bool %unrestricted)))
+                      (nat %whitelist_id)))))) ;
+  storage
+    (pair (pair (address %admin) (address %issuer))
+          (pair (big_map %users address nat)
+                (big_map %whitelists nat (pair (set %allowed_whitelists nat) (bool %unrestricted))))) ;
+  code { NIL operation ;
+         LAMBDA
+           (pair (pair (address %admin) (address %issuer))
+                 (pair (big_map %users address nat)
+                       (big_map %whitelists nat (pair (set %allowed_whitelists nat) (bool %unrestricted)))))
+           (pair (pair (address %admin) (address %issuer))
+                 (pair (big_map %users address nat)
+                       (big_map %whitelists nat (pair (set %allowed_whitelists nat) (bool %unrestricted)))))
+           { DUP ;
+             CAR ;
+             CAR ;
+             SENDER ;
+             COMPARE ;
+             EQ ;
+             IF { DUP } { PUSH string "only admin may update" ; FAILWITH } ;
+             DIP { DROP } } ;
+         LAMBDA
+           (pair (address %0) (big_map %1 address nat))
+           (option nat)
+           { DUP ; DUP ; CAR ; DIP { DUP ; CDR } ; GET ; DIP { DROP 2 } } ;
+         DUP ;
+         LAMBDA
+           (pair (lambda (pair (address %0) (big_map %1 address nat)) (option nat))
+                 (pair (address %0) (big_map %1 address nat)))
+           nat
+           { DUP ;
+             CAR ;
+             SWAP ;
+             CDR ;
+             DUP ;
+             DUP ;
+             CAR ;
+             DIP { DUP ; CDR } ;
+             PAIR ;
+             DIP { DIP 2 { DUP } ; DIG 2 } ;
+             EXEC ;
+             IF_NONE
+               { PUSH string "User not on a whitelist" ; FAILWITH }
+               { DUP ; DIP { DROP } } ;
+             DIP { DROP 3 } } ;
+         SWAP ;
+         APPLY ;
+         LAMBDA
+           (pair (nat %0)
+                 (big_map %1 nat (pair (set %allowed_whitelists nat) (bool %unrestricted))))
+           (option (pair (set %allowed_whitelists nat) (bool %unrestricted)))
+           { DUP ; DUP ; CAR ; DIP { DUP ; CDR } ; GET ; DIP { DROP 2 } } ;
+         DIP 5 { DUP } ;
+         DIG 5 ;
+         DUP ;
+         CDR ;
+         DIP { DUP } ;
+         SWAP ;
+         CAR ;
+         IF_LEFT
+           { DUP ;
+             DIP { DIP { DUP } ; SWAP } ;
+             PAIR ;
+             DUP ;
+             CAR ;
+             DIP { DUP } ;
+             SWAP ;
+             CDR ;
+             DIP { DUP } ;
+             SWAP ;
+             CAR ;
+             DIP { DUP ; CAR ; CDR } ;
+             COMPARE ;
+             EQ ;
+             IF { DUP }
+                { DIP { DUP } ;
+                  SWAP ;
+                  CAR ;
+                  DIP { DIP { DUP } ; SWAP ; CDR } ;
+                  PAIR ;
+                  DIP { DUP ; CDR ; CAR } ;
+                  PAIR ;
+                  DUP ;
+                  CDR ;
+                  DIP { DUP } ;
+                  SWAP ;
+                  CAR ;
+                  CAR ;
+                  DIP { DUP } ;
+                  PAIR ;
+                  DIP { DIP 9 { DUP } ; DIG 9 } ;
+                  EXEC ;
+                  DIP { DIP { DUP } ;
+                        SWAP ;
+                        CAR ;
+                        CDR ;
+                        DIP { DUP } ;
+                        PAIR ;
+                        DIP { DIP 9 { DUP } ; DIG 9 } ;
+                        EXEC } ;
+                  PAIR ;
+                  DIP { DROP 2 } ;
+                  DUP ;
+                  CAR ;
+                  DIP { DIP { DUP } ; SWAP ; CDR ; CDR } ;
+                  PAIR ;
+                  DUP ;
+                  CAR ;
+                  DIP { DUP ; CDR } ;
+                  PAIR ;
+                  DIP { DIP 8 { DUP } ; DIG 8 } ;
+                  EXEC ;
+                  IF_NONE
+                    { PUSH string "Whitelist does not exist" ; FAILWITH }
+                    { DUP ; DIP { DROP } } ;
+                  DIP { DROP } ;
+                  DUP ;
+                  DUP ;
+                  CDR ;
+                  IF { DUP ; CAR } { PUSH string "outbound restricted" ; FAILWITH } ;
+                  DIP { DROP } ;
+                  DIP 2 { DUP } ;
+                  DIG 2 ;
+                  CDR ;
+                  DIP { DUP } ;
+                  MEM ;
+                  IF { DIP 3 { DUP } ; DIG 3 }
+                     { PUSH string "outbound not whitelisted" ; FAILWITH } ;
+                  DIP { DROP 3 } } ;
+             DIP 11 { DUP } ;
+             DIG 11 ;
+             DIP { DUP } ;
+             PAIR ;
+             DIP { DROP 5 } }
+           { DUP ;
+             DIP { DIP { DUP } ; SWAP } ;
+             PAIR ;
+             DUP ;
+             CDR ;
+             DIP { DUP } ;
+             SWAP ;
+             CAR ;
+             IF_LEFT
+               { DUP ;
+                 IF_LEFT
+                   { DUP ;
+                     IF_LEFT
+                       { DUP ;
+                         DIP { DIP 3 { DUP } ; DIG 3 } ;
+                         PAIR ;
+                         DUP ;
+                         CAR ;
+                         DIP { DUP } ;
+                         SWAP ;
+                         CDR ;
+                         DIP { DIP 13 { DUP } ; DIG 13 } ;
+                         EXEC ;
+                         DIP { DUP } ;
+                         SWAP ;
+                         CAR ;
+                         DIP { DUP } ;
+                         PAIR ;
+                         DUP ;
+                         CAR ;
+                         DUP ;
+                         DIP { DIP { DUP } ; SWAP ; CDR ; CAR ; CDR } ;
+                         COMPARE ;
+                         EQ ;
+                         IF { PUSH string "issuer is not a user" ; FAILWITH } { DUP } ;
+                         DIP { DROP 2 } ;
+                         DIP 16 { DUP } ;
+                         DIG 16 ;
+                         DIP { DIP { DUP } ;
+                               SWAP ;
+                               DIP { DUP } ;
+                               SWAP ;
+                               DIP { DIP 3 { DUP } ; DIG 3 ; CDR } ;
+                               PAIR ;
+                               DIP { DIP 2 { DUP } ; DIG 2 ; CDR ; CAR } ;
+                               PAIR ;
+                               DUP ;
+                               CAR ;
+                               CAR ;
+                               DIP { DUP ; CAR ; CDR ; DIP { DUP ; CDR } } ;
+                               UPDATE ;
+                               DIP { DROP ; DUP ; CAR ; SWAP ; CDR ; CDR } ;
+                               PAIR ;
+                               SWAP ;
+                               PAIR } ;
+                         PAIR ;
+                         DIP { DROP 5 } }
+                       { DUP ;
+                         DIP { DIP 3 { DUP } ; DIG 3 } ;
+                         PAIR ;
+                         DUP ;
+                         CDR ;
+                         DUP ;
+                         CAR ;
+                         CAR ;
+                         DIP { DIP { DUP } ; SWAP ; CAR ; CDR ; PUSH mutez 0 } ;
+                         TRANSFER_TOKENS ;
+                         DUP ;
+                         NIL operation ;
+                         SWAP ;
+                         CONS ;
+                         DIP { DIP { DUP } ; SWAP } ;
+                         PAIR ;
+                         DIP { DROP 4 } } ;
+                     DIP { DROP } }
+                   { DUP ;
+                     IF_LEFT
+                       { DUP ;
+                         DIP { DIP 3 { DUP } ; DIG 3 } ;
+                         PAIR ;
+                         DUP ;
+                         CDR ;
+                         DUP ;
+                         CAR ;
+                         CDR ;
+                         DIP { DIP { DUP } ; SWAP ; CAR ; CDR ; PUSH mutez 0 } ;
+                         TRANSFER_TOKENS ;
+                         DUP ;
+                         NIL operation ;
+                         SWAP ;
+                         CONS ;
+                         DIP { DIP { DUP } ; SWAP } ;
+                         PAIR ;
+                         DIP { DROP 4 } }
+                       { DUP ;
+                         DIP { DIP 3 { DUP } ; DIG 3 } ;
+                         PAIR ;
+                         DUP ;
+                         CAR ;
+                         DIP { DUP } ;
+                         SWAP ;
+                         CDR ;
+                         DIP { DUP } ;
+                         SWAP ;
+                         CAR ;
+                         DIP { DUP ; CDR ; CAR } ;
+                         PAIR ;
+                         DIP { DIP 13 { DUP } ; DIG 13 } ;
+                         EXEC ;
+                         DIP { DIP { DUP } ; SWAP ; CDR ; PUSH mutez 0 } ;
+                         TRANSFER_TOKENS ;
+                         DUP ;
+                         NIL operation ;
+                         SWAP ;
+                         CONS ;
+                         DIP { DIP { DUP } ; SWAP } ;
+                         PAIR ;
+                         DIP { DROP 5 } } ;
+                     DIP { DROP } } ;
+                 DIP { DROP } }
+               { DUP ;
+                 IF_LEFT
+                   { DUP ;
+                     IF_LEFT
+                       { DUP ;
+                         DIP { DIP 3 { DUP } ; DIG 3 } ;
+                         PAIR ;
+                         DUP ;
+                         CAR ;
+                         DIP { DUP } ;
+                         SWAP ;
+                         CDR ;
+                         DIP { DUP } ;
+                         SWAP ;
+                         CAR ;
+                         DIP { DUP ; CDR ; CDR } ;
+                         PAIR ;
+                         DIP { DIP 11 { DUP } ; DIG 11 } ;
+                         EXEC ;
+                         DIP { DIP { DUP } ; SWAP ; CDR ; PUSH mutez 0 } ;
+                         TRANSFER_TOKENS ;
+                         DUP ;
+                         NIL operation ;
+                         SWAP ;
+                         CONS ;
+                         DIP { DIP { DUP } ; SWAP } ;
+                         PAIR ;
+                         DIP { DROP 5 } }
+                       { DUP ;
+                         DIP { DIP 3 { DUP } ; DIG 3 } ;
+                         PAIR ;
+                         DUP ;
+                         CDR ;
+                         DIP { DIP 12 { DUP } ; DIG 12 } ;
+                         EXEC ;
+                         DIP 14 { DUP } ;
+                         DIG 14 ;
+                         DIP { DUP ;
+                               DIP 2 { DUP } ;
+                               DIG 2 ;
+                               CAR ;
+                               DIP { DUP ; CDR ; SWAP ; CAR ; CDR } ;
+                               PAIR ;
+                               PAIR } ;
+                         PAIR ;
+                         DIP { DROP 3 } } ;
+                     DIP { DROP } }
+                   { DUP ;
+                     IF_LEFT
+                       { DUP ;
+                         DIP { DIP 3 { DUP } ; DIG 3 } ;
+                         PAIR ;
+                         DUP ;
+                         CDR ;
+                         DIP { DIP 12 { DUP } ; DIG 12 } ;
+                         EXEC ;
+                         DIP 14 { DUP } ;
+                         DIG 14 ;
+                         DIP { DUP ;
+                               DIP 2 { DUP } ;
+                               DIG 2 ;
+                               CAR ;
+                               DIP { DUP ; CDR ; SWAP ; CAR ; CAR } ;
+                               SWAP ;
+                               PAIR ;
+                               PAIR } ;
+                         PAIR ;
+                         DIP { DROP 3 } }
+                       { DUP ;
+                         DIP { DIP 3 { DUP } ; DIG 3 } ;
+                         PAIR ;
+                         DUP ;
+                         CAR ;
+                         DIP { DUP } ;
+                         SWAP ;
+                         CDR ;
+                         DIP { DIP 13 { DUP } ; DIG 13 } ;
+                         EXEC ;
+                         DIP 15 { DUP } ;
+                         DIG 15 ;
+                         DIP { DUP ;
+                               DIP 2 { DUP } ;
+                               DIG 2 ;
+                               CDR ;
+                               DIP { DIP 2 { DUP } ; DIG 2 ; CAR } ;
+                               PAIR ;
+                               DIP { DIP { DUP } ; SWAP ; CDR ; CDR } ;
+                               PAIR ;
+                               DUP ;
+                               CAR ;
+                               CAR ;
+                               DIP { DUP ; CAR ; CDR ; DIP { DUP ; CDR } } ;
+                               UPDATE ;
+                               DIP { DROP ; DUP ; CAR ; SWAP ; CDR ; CAR } ;
+                               SWAP ;
+                               PAIR ;
+                               SWAP ;
+                               PAIR } ;
+                         PAIR ;
+                         DIP { DROP 4 } } ;
+                     DIP { DROP } } ;
+                 DIP { DROP } } ;
+             DIP { DROP 3 } } ;
+         DIP { DROP 8 } } }
+
